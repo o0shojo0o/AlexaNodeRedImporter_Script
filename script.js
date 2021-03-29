@@ -1,7 +1,12 @@
 const AlexaInput = '0_userdata.0.AlexaToNodeRed.Input';
 createState(AlexaInput, '',{name: 'Input Json from Alexa -> NodeRed', type: 'string', role: 'json'});
 
-let actionObj = {
+const rollo = [
+    {room:'Büro', id:['zigbee.0.680ae2fffeed55f6.position']},
+    {room:'Schlafzimmer', id:['zigbee.0.680ae2fffe974af1.position', 'zigbee.0.680ae2fffe54a2ba.position']}
+]
+
+const actionObj = {
     deviceDP: '',
     deviceType: '',
     state: false,
@@ -24,6 +29,20 @@ let actionObj = {
 on(AlexaInput,(obj)=>{
     const x = parsAlexaData(obj);
     //log(`Debug Log: ${JSON.stringify(x)}`);
+
+    if (x.deviceDP == 'licht'){
+        const alexaHist = JSON.parse(getState('alexa2.0.History.json').val);
+        //setState('alexa2.0.Echo-Devices.46d87cf8ac394b06abaa2f5cbefd3f89.Commands.speak', `Der Befehl ${x.colorHex} kam von ${alexaHist.name}!`);
+    }
+
+    if (x.deviceDP == 'rollo'){
+        const alexaHist = JSON.parse(getState('alexa2.0.History.json').val);        
+        const room = alexaHist.name.split(' ')[0];
+        const ids = rollo.find(x=>x.room == room).id;
+        for (const key in ids){
+            setState(ids[key], Number(x.percentage));
+        }
+    }
     
     if (x.triggerKeys.includes('bri')){
         setBrightness(x);
@@ -187,12 +206,15 @@ function RGBToHex(r,g,b) {
   g = g.toString(16);
   b = b.toString(16);
 
-  if (r.length == 1)
+  if (r.length == 1){
     r = "0" + r;
-  if (g.length == 1)
+  }
+  if (g.length == 1){
     g = "0" + g;
-  if (b.length == 1)
+  }
+  if (b.length == 1){
     b = "0" + b;
-
+  }
+  
   return "#" + r + g + b;
 }
