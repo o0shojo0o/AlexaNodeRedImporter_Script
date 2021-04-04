@@ -2,7 +2,7 @@ const alexaInputDP = '0_userdata.0.AlexaToNodeRed.Input';
 const alexaOutputDP = '0_userdata.0.AlexaToNodeRed.Output';
 const alexaDatabaseDP = '0_userdata.0.AlexaToNodeRed.Database';
 
-const deviceTypeDPs = {
+const deviceTypeDatapointMap = {
     zigbee: { bri:{ dp:'brightness', min:0, max:100 }, hue:'color', ct:'colortemp', on:'state' },
     wled: { bri:{ dp:'bri', min:0, max:254 }, hue:'seg.0.col.0_HEX', ct:'', on:'on' }
 }
@@ -48,16 +48,16 @@ on(alexaInputDP,(obj)=> {
     }
     
     if (x.triggerKeys.includes('bri')) {
-        setMyState(`${x.deviceDP}.${deviceTypeDPs[x.deviceType].bri.dp}`, Number(x.percentage));
+        setMyState(`${x.deviceDP}.${deviceTypeDatapointMap[x.deviceType].bri.dp}`, Number(x.percentage));
     }  
     else if (x.triggerKeys.includes('hue')) {
-        setMyState(`${x.deviceDP}.${deviceTypeDPs[x.deviceType].hue}`, x.colorHex);   
+        setMyState(`${x.deviceDP}.${deviceTypeDatapointMap[x.deviceType].hue}`, x.colorHex);   
     }  
     else if (x.triggerKeys.includes('ct')) {
-        setMyState(`${x.deviceDP}.${deviceTypeDPs[x.deviceType].ct}`, Number(x.colorTemp)); 
+        setMyState(`${x.deviceDP}.${deviceTypeDatapointMap[x.deviceType].ct}`, Number(x.colorTemp)); 
     }
     else if (x.triggerKeys.includes('on')) {
-        setMyState(`${x.deviceDP}.${deviceTypeDPs[x.deviceType].on}`, x.state);
+        setMyState(`${x.deviceDP}.${deviceTypeDatapointMap[x.deviceType].on}`, x.state);
     }  
 });
 
@@ -84,7 +84,7 @@ function parsAlexaData(obj) {
 
 function createAlexaDPSubs(device){
     const deviceType = getDeviceType(device);
-    const dataPoints = deviceTypeDPs[deviceType];      
+    const dataPoints = deviceTypeDatapointMap[deviceType];      
     
     for (const dp in dataPoints) {
         if (!isEmpty(dataPoints[dp])) {
