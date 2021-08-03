@@ -3,11 +3,12 @@ const alexaOutputDP = '0_userdata.0.AlexaToNodeRed.Output';
 const alexaDatabaseDP = '0_userdata.0.AlexaToNodeRed.Database';
 
 const deviceTypeDatapointMap = {
+    customBlind: { bri:{ dp:'position', min:0, max:100 }, hue:'', ct:'', on:'' },
     zigbee: { bri:{ dp:'brightness', min:0, max:100 }, hue:'color', ct:'colortemp', on:'state' },
     wled: { bri:{ dp:'bri', min:0, max:254 }, hue:'seg.0.col.0_HEX', ct:'', on:'on' }
 }
 
-const actionObj = {
+const inputObj = {
     deviceDP: '',
     deviceType: '',
     deviceAlexaID: '', 
@@ -70,16 +71,16 @@ function parsAlexaData(obj) {
     const x = JSON.parse(obj.state.val);
     const rgb = cieToRgb(x.xy[0], x.xy[1], undefined);  
     
-    actionObj.deviceDP = x.topic;
-    actionObj.deviceType = getDeviceType(x.topic);
-    actionObj.deviceAlexaID = x.deviceid;
-    actionObj.state = x.on;
-    actionObj.brightness = Number(x.bri);
-    actionObj.colorTempMired = Number(x.ct);
-    actionObj.colorMode = x.colormode;    
-    actionObj.colorRGB = { r: rgb[0], g: rgb[1] , b: rgb[2] };
-    actionObj.triggerKeys = Object.keys(x.meta.input);
-    return actionObj;   
+    inputObj.deviceType = getDeviceType(x.topic);
+    inputObj.deviceDP = inputObj.deviceType.startsWith('custom') ? x.topic.replace(`${inputObj.deviceType}.`,'') : x.topic;
+    inputObj.deviceAlexaID = x.deviceid;
+    inputObj.state = x.on;
+    inputObj.brightness = Number(x.bri);
+    inputObj.colorTempMired = Number(x.ct);
+    inputObj.colorMode = x.colormode;    
+    inputObj.colorRGB = { r: rgb[0], g: rgb[1] , b: rgb[2] };
+    inputObj.triggerKeys = Object.keys(x.meta.input);
+    return inputObj;   
 }
 
 function createAlexaDPSubs(device){
@@ -120,10 +121,11 @@ function createAlexaDPSubs(device){
 
 function setMyState(device, state) {
     if (!existsState(device)){
-        log(`State: ${state} for Device: ${device} rejected, state not exist!`, 'warn')
+        log(`State: ${state} for Device: ${device} rejected, state not exist!`, 'warn');
         return;
     }
     setState(device, state);
+    log(`Set ${device} of ${state}`);
 }
 
 function cieToRgb(x, y, brightness) {
